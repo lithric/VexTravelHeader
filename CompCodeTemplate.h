@@ -49,6 +49,7 @@ namespace Code
     #define __wait(...) opper(4,__VA_ARGS__)
     #define __stop(...) opper(5,__VA_ARGS__)
     #define __chase(...) opper(6,__VA_ARGS__)
+    #define __tilt(...) opper(7,__VA_ARGS__)
     #define printIf(cond,T,F) anon(if(cond){Brain.Screen.print(T);Brain.Screen.newLine();}else{Brain.Screen.print(F);Brain.Screen.newLine();})
 
     // assign global variables

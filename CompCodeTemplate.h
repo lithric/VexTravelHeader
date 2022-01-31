@@ -194,9 +194,6 @@ namespace Code
                         Controller1.ButtonR2.pressing() ? Fork.spin(reverse):
                         Fork.stop(hold);
                     }
-                    // replaceB(2,Controller1.Axis1.position());
-                    // replaceB(3,Controller1.Axis2.position());
-                    // replaceB(4,Controller1.Axis3.position());
 
                 }
             }

@@ -20,6 +20,7 @@
 #include <vector>
 #include <map>
 #include <typeinfo>
+#include <algorithm>
 
 // namespaces and imported methods
 namespace Code
@@ -112,6 +113,8 @@ namespace Code
                     case 5: //__stop
                         Drivetrain.stop();
                         Arm.stop();
+                        LeftDriveSmart.stop();
+                        RightDriveSmart.stop();
                     break;
                     case 6: //__chase
                         //Drivetrain.drive(forward);
@@ -163,13 +166,21 @@ namespace Code
                         Drivetrain.stop();
                     break;
                     case 7: // __tilt()
-                        val.size() > 2 ?
-                        (void)Drivetrain.setDriveVelocity(val[2],percent):
-                        (void)Drivetrain.setDriveVelocity(speed,percent);
+                        double value3 = val.size() > 2 ? val[2]:100;
+                        double conv = std::min(value3/val[0],value3/val[1]);
+                        double value1 = val[0]*conv;
+                        double value2 = val[1]*conv;
+                        LeftDriveSmart.spin(forward);
+                        RightDriveSmart.spin(forward);
+                        LeftDriveSmart.setVelocity(value1,percent);
+                        RightDriveSmart.setVelocity(value2,percent);
                     break;
                 }
             }
         }
+        /*
+            __tilt(50,10)
+        */
     };
     void userControl(void) {
         Brain.Screen.clearScreen();

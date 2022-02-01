@@ -71,6 +71,10 @@ namespace Code
             for (auto const& instruct : instructions) {
                 std::vector<double> key = instruct[0];
                 std::vector<double> val = instruct[1];
+                int lastSeen = 100; // callback number to establish where object was last seen
+                int centerFOV = 316/2; // the center of the screen
+                int offsetX = 30; // offset to match the center of the bot
+                std::map<std::string,int> objectBounds = {{"left",centerFOV+offsetX},{"right",centerFOV-offsetX}};
                 switch ((int)key[0]) {
                     case 0: //__drive
                         val.size() > 1 ?
@@ -111,10 +115,6 @@ namespace Code
                     break;
                     case 6: //__chase
                         //Drivetrain.drive(forward);
-                        int centerFOV = 316/2; // the center of the screen
-                        int offsetX = 30; // offset to match the center of the bot
-                        std::map<std::string,int> objectBounds = {{"left",centerFOV+offsetX},{"right",centerFOV-offsetX}};
-                        int lastSeen = 100; // callback number to establish where object was last seen
                         //Eyeball.takeSnapshot(Eyeball__REDGOAL); // get data about where object is
                         while(true) {
                             //Eyeball.takeSnapshot(Eyeball__REDGOAL);
@@ -138,28 +138,34 @@ namespace Code
                                 }
                             }
                             else {
-                                switch(lastSeen) {
-                                    case 1:
-                                        LeftDriveSmart.spin(forward);
-                                        RightDriveSmart.spin(reverse);
-                                    break;
-                                    case -1:
-                                        LeftDriveSmart.spin(reverse);
-                                        RightDriveSmart.spin(forward);
-                                    break;
-                                    case 0:
-                                        LeftDriveSmart.spin(forward);
-                                        RightDriveSmart.spin(forward);
-                                    break;
-                                    default:
-                                        LeftDriveSmart.stop();
-                                        RightDriveSmart.stop();
-                                    break;
-                                }
+                                lastSeen == 1 ?
+                                (void)anon(
+                                    LeftDriveSmart.spin(forward);
+                                    RightDriveSmart.spin(reverse);
+                                ):
+                                lastSeen == -1 ?
+                                (void)anon(
+                                    LeftDriveSmart.spin(reverse);
+                                    RightDriveSmart.spin(forward);
+                                ):
+                                lastSeen == 0 ?
+                                (void)anon(
+                                    LeftDriveSmart.spin(forward);
+                                    RightDriveSmart.spin(forward);
+                                ):
+                                (void)anon(
+                                    LeftDriveSmart.stop();
+                                    RightDriveSmart.stop();
+                                );
                             }
                             wait(0.05,seconds);
                         }
                         Drivetrain.stop();
+                    break;
+                    case 7: // __tilt()
+                        val.size() > 2 ?
+                        (void)Drivetrain.setDriveVelocity(val[2],percent):
+                        (void)Drivetrain.setDriveVelocity(speed,percent);
                     break;
                 }
             }

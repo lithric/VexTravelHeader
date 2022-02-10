@@ -42,6 +42,7 @@ namespace Code
 
     #define printB(a) Brain.Screen.print(a);Brain.Screen.newLine()
     #define replaceB(a,b) Brain.Screen.clearLine(a);Brain.Screen.setCursor(a,1);Brain.Screen.print(b)
+    #define insertB(line,pos,str) Brain.Screen.clearLine(line);Brain.Screen.setCursor(line,pos);Brain.Screen.print(str)
     #define clearB(a) Brain.Screen.clearLine(a)
     #define __drive(...) opper(0,__VA_ARGS__)
     #define __turn(...) opper(1,__VA_ARGS__)
@@ -56,11 +57,60 @@ namespace Code
     // assign global variables
         bool debugMode = false;
         std::vector<bool> singleAct = {false,false,false,false,false,false};
+        bool reversed = true;
+        bool isPistonOpen = false;
+        double gearRatio = 7/5;
+        int autonMode = 0;
+        std::vector<char*> autonNames = {"Right","Left","RightWin","LeftWin","Nothing"};
     //
     // Begin project code
     void preAutonomous(void) {
         Brain.Screen.clearScreen();
         Brain.Screen.print("pre auton code");
+        Controller1.ButtonUp.pressed( anon(singleAct[3] = true) );
+        Controller1.ButtonUp.released( anon(if(singleAct[3]){
+            autonMode = autonMode-1 < 0 ? autonNames.size()-1:autonMode-1;
+            int i=0;
+            for (auto const& name : autonNames) {
+                if(i != autonMode) {
+                    insertB(i+3,1,name);
+                }
+                else {
+                    insertB(i+3,5,name);
+                }
+                i++;
+            };
+        singleAct[3] = false;}) );
+        Controller1.ButtonDown.pressed( anon(singleAct[3] = true) );
+        Controller1.ButtonDown.released( anon(if(singleAct[3]){
+            autonMode = autonMode+1 >= autonNames.size() ? 0:autonMode+1;
+            int i=0;
+            for (auto const& name : autonNames) {
+                if(i != autonMode) {
+                    insertB(i+3,1,name);
+                }
+                else {
+                    insertB(i+3,5,name);
+                }
+                i++;
+            };
+        singleAct[3] = false;}) );
+        int i=0;
+        for (auto const& name : autonNames) {
+            if(i != autonMode) {
+                insertB(i+3,1,name);
+            }   
+            else {
+                insertB(i+3,5,name);
+            }
+            i++;
+        }
+        rightMotorA.setReversed(!reversed);
+        rightMotorB.setReversed(!reversed);
+        leftMotorA.setReversed(reversed);
+        leftMotorB.setReversed(reversed);
+        Drivetrain.setGearRatio(gearRatio);
+        StickyPiston.set(!isPistonOpen);
         wait(1, seconds);
     }
     class DriveInstructions {
@@ -96,7 +146,7 @@ namespace Code
                         Drivetrain.setTurnVelocity(speed,percent);
                     break;
                     case 2: //__grab
-                        StickyPiston.set(val[0] == 1 ? true:false);
+                        StickyPiston.set(val[0] == 1 ? isPistonOpen:!isPistonOpen);
                     break;
                     case 3: //__lift
                         val.size() > 1 ?
@@ -112,7 +162,7 @@ namespace Code
                     break;
                     case 5: //__stop
                         Drivetrain.stop();
-                        Arm.stop();
+                        Arm.stop(hold);
                         LeftDriveSmart.stop();
                         RightDriveSmart.stop();
                     break;
@@ -186,7 +236,11 @@ namespace Code
         Brain.Screen.clearScreen();
         // place driver control in this while loop
         Arm.setVelocity(50,percent);
-        Drivetrain.setDriveVelocity(100,percent);
+        rightMotorA.setReversed(!reversed);
+        rightMotorB.setReversed(!reversed);
+        leftMotorA.setReversed(reversed);
+        leftMotorB.setReversed(reversed);
+        Drivetrain.setGearRatio(gearRatio);
         Fork.setVelocity(100,percent);
             while (true) {
                 wait(20, msec);

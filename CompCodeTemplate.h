@@ -57,14 +57,17 @@ namespace Code
     // assign global variables
         bool debugMode = false;
         std::vector<bool> singleAct = {false,false,false,false,false,false};
-        bool reversed = true;
         bool isPistonOpen = false;
-        double gearRatio = 7/5;
         int autonMode = 0;
-        std::vector<char*> autonNames = {"Right","Left","RightWin","LeftWin","Nothing"};
+        std::vector<char*> autonNames = {"Right","Left","RightWin","LeftWin"};
     //
     // Begin project code
     void preAutonomous(void) {
+        if (std::find(autonNames.begin(), autonNames.end(), "Nothing") != autonNames.end()) {
+        }
+        else {
+            autonNames.push_back("Nothing");
+        }
         Brain.Screen.clearScreen();
         Brain.Screen.print("pre auton code");
         Controller1.ButtonUp.pressed( anon(singleAct[3] = true) );
@@ -105,11 +108,6 @@ namespace Code
             }
             i++;
         }
-        rightMotorA.setReversed(!reversed);
-        rightMotorB.setReversed(!reversed);
-        leftMotorA.setReversed(reversed);
-        leftMotorB.setReversed(reversed);
-        Drivetrain.setGearRatio(gearRatio);
         StickyPiston.set(!isPistonOpen);
         wait(1, seconds);
     }
@@ -161,7 +159,7 @@ namespace Code
                         wait(val[0],msec);
                     break;
                     case 5: //__stop
-                        Drivetrain.stop();
+                        Drivetrain.stop(hold);
                         Arm.stop(hold);
                         LeftDriveSmart.stop();
                         RightDriveSmart.stop();
@@ -236,11 +234,6 @@ namespace Code
         Brain.Screen.clearScreen();
         // place driver control in this while loop
         Arm.setVelocity(50,percent);
-        rightMotorA.setReversed(!reversed);
-        rightMotorB.setReversed(!reversed);
-        leftMotorA.setReversed(reversed);
-        leftMotorB.setReversed(reversed);
-        Drivetrain.setGearRatio(gearRatio);
         Fork.setVelocity(100,percent);
             while (true) {
                 wait(20, msec);

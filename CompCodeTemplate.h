@@ -21,10 +21,17 @@
 #include <map>
 #include <typeinfo>
 #include <algorithm>
+#include <sstream>
 
 // namespaces and imported methods
 namespace Code
 {
+    const char* ConvertDoubleToString(double value){
+        std::stringstream ss ;
+        ss << value;
+        const char* str = ss.str().c_str();
+        return str;
+    }
     using namespace vex;
 
     // define some useful changes
@@ -59,7 +66,7 @@ namespace Code
         std::vector<bool> singleAct = {false,false,false,false,false,false};
         bool isPistonOpen = false;
         int autonMode = 0;
-        std::vector<char*> autonNames = {"Right","Left","RightWin","LeftWin"};
+        std::vector<const char*> autonNames = {"Right","Left","RightWin","LeftWin"};
     //
     // Begin project code
     void preAutonomous(void) {
@@ -123,6 +130,8 @@ namespace Code
                 int lastSeen = 100; // callback number to establish where object was last seen
                 int centerFOV = 316/2; // the center of the screen
                 int offsetX = 30; // offset to match the center of the bot
+                double dist;
+                const char* good;
                 std::map<std::string,int> objectBounds = {{"left",centerFOV+offsetX},{"right",centerFOV-offsetX}};
                 switch ((int)key[0]) {
                     case 0: //__drive
@@ -133,6 +142,9 @@ namespace Code
                         (void)Drivetrain.driveFor(forward,val[0],inches):
                         (void)Drivetrain.drive(forward);
                         Drivetrain.setDriveVelocity(val[0] == 0 && val[2] > 0 ? speed:-speed,percent);
+                        dist = Drivetrain.rotation();
+                        good = ConvertDoubleToString(dist);
+                        printB(good);
                     break;
                     case 1: //__turn
                         val.size() > 1 ?

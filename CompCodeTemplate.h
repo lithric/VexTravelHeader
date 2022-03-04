@@ -130,7 +130,8 @@ namespace Code
                 int lastSeen = 100; // callback number to establish where object was last seen
                 int centerFOV = 316/2; // the center of the screen
                 int offsetX = 30; // offset to match the center of the bot
-                double dist;
+                double distL;
+                double distR;
                 const char* good;
                 std::map<std::string,int> objectBounds = {{"left",centerFOV+offsetX},{"right",centerFOV-offsetX}};
                 switch ((int)key[0]) {
@@ -142,8 +143,9 @@ namespace Code
                         (void)Drivetrain.driveFor(forward,val[0],inches):
                         (void)Drivetrain.drive(forward);
                         Drivetrain.setDriveVelocity(val[0] == 0 && val[2] > 0 ? speed:-speed,percent);
-                        dist = Drivetrain.rotation();
-                        good = ConvertDoubleToString(dist);
+                        distL = LeftDriveSmart.position(turns);
+                        distR = RightDriveSmart.position(turns);
+                        good = ConvertDoubleToString(distL);
                         printB(good);
                     break;
                     case 1: //__turn

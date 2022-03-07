@@ -16,7 +16,6 @@
 
 #include <cmath>
 #include <tgmath.h>
-#include <thread>
 #include <vector>
 #include <map>
 #include <typeinfo>
@@ -59,6 +58,7 @@ namespace Code
     #define __stop(...) opper(5,__VA_ARGS__)
     #define __chase(...) opper(6,__VA_ARGS__)
     #define __tilt(...) opper(7,__VA_ARGS__)
+    #define __move(...) opper(8,__VA_ARGS__)
     #define printIf(cond,T,F) anon(if(cond){Brain.Screen.print(T);Brain.Screen.newLine();}else{Brain.Screen.print(F);Brain.Screen.newLine();})
 
     // assign global variables
@@ -115,7 +115,7 @@ namespace Code
             }
             i++;
         }
-        StickyPiston.set(!isPistonOpen);
+        StickyPiston.set(isPistonOpen);
         wait(1, seconds);
     }
     class DriveInstructions {
@@ -129,7 +129,7 @@ namespace Code
                 std::vector<double> val = instruct[1];
                 int lastSeen = 100; // callback number to establish where object was last seen
                 int centerFOV = 316/2; // the center of the screen
-                int offsetX = 30; // offset to match the center of the bot
+                int offsetX = 40; // offset to match the center of the bot
                 double distL;
                 double distR;
                 const char* good;
@@ -143,10 +143,19 @@ namespace Code
                         (void)Drivetrain.driveFor(forward,val[0],inches):
                         (void)Drivetrain.drive(forward);
                         Drivetrain.setDriveVelocity(val[0] == 0 && val[2] > 0 ? speed:-speed,percent);
-                        distL = LeftDriveSmart.position(turns);
-                        distR = RightDriveSmart.position(turns);
-                        good = ConvertDoubleToString(distL);
-                        printB(good);
+                        // distL = LeftDriveSmart.position(turns);
+                        // distR = RightDriveSmart.position(turns);
+                        // good = ConvertDoubleToString(distL);
+                        // printB(good);
+                    break;
+                    case 8: //__move
+                        val.size() > 1 ?
+                        (void)Drivetrain.setDriveVelocity(val[1],percent):
+                        (void)Drivetrain.setDriveVelocity(speed,percent);
+                        std::abs(val[0]) > 0 ?
+                        (void)Drivetrain.driveFor(forward,val[0],inches,false):
+                        (void)Drivetrain.drive(forward);
+                        Drivetrain.setDriveVelocity(val[0] == 0 && val[2] > 0 ? speed:-speed,percent);
                     break;
                     case 1: //__turn
                         val.size() > 1 ?
@@ -158,7 +167,7 @@ namespace Code
                         Drivetrain.setTurnVelocity(speed,percent);
                     break;
                     case 2: //__grab
-                        StickyPiston.set(val[0] == 1 ? isPistonOpen:!isPistonOpen);
+                        StickyPiston.set(val[0] == 1 ? !isPistonOpen:isPistonOpen);
                     break;
                     case 3: //__lift
                         val.size() > 1 ?
@@ -180,11 +189,20 @@ namespace Code
                     break;
                     case 6: //__chase
                         //Drivetrain.drive(forward);
-                        //Eyeball.takeSnapshot(Eyeball__REDGOAL); // get data about where object is
+                        val.size() > 2 ?
+                        (void)Drivetrain.setDriveVelocity(val[2],percent):
+                        (void)Drivetrain.setDriveVelocity(speed,percent);
+                        val.size() > 2 ?
+                        (void)LeftDriveSmart.setVelocity(val[2],percent):
+                        (void)LeftDriveSmart.setVelocity(speed,percent);
+                        val.size() > 2 ?
+                        (void)RightDriveSmart.setVelocity(val[2],percent):
+                        (void)RightDriveSmart.setVelocity(speed,percent);
+                        Eyeball.takeSnapshot(Eyeball__VEXBTAG); // get data about where object is
                         while(true) {
-                            //Eyeball.takeSnapshot(Eyeball__REDGOAL);
+                            Eyeball.takeSnapshot(Eyeball__VEXBTAG);
                             if (Eyeball.largestObject.exists) {
-                                if (Eyeball.largestObject.width < val[0]) {
+                                if (Eyeball.largestObject.width < val[0] && Eyeball.largestObject.width > val[1]) {
                                     if (Eyeball.largestObject.centerX > centerFOV + offsetX) {
                                         LeftDriveSmart.spin(forward);RightDriveSmart.stop();
                                         lastSeen = 1; // to the right
@@ -198,8 +216,28 @@ namespace Code
                                         lastSeen = 0; // straight ahead
                                     }
                                 }
+                                else if (Eyeball.largestObject.width < val[0]) {
+                                    switch(lastSeen) {
+                                        case 1:
+                                            LeftDriveSmart.spin(forward);
+                                            RightDriveSmart.spin(reverse);
+                                        break;
+                                        case -1:
+                                            LeftDriveSmart.spin(reverse);
+                                            RightDriveSmart.spin(forward);
+                                        break;
+                                        case 0:
+                                            LeftDriveSmart.spin(forward);
+                                            RightDriveSmart.spin(forward);
+                                        break;
+                                        default:
+                                            LeftDriveSmart.stop();
+                                            RightDriveSmart.stop();
+                                        break;
+                                    }
+                                }
                                 else {
-                                    lastSeen = 100; // no where
+                                    break;
                                 }
                             }
                             else {
